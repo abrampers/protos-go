@@ -110,16 +110,17 @@ func init() {
 func init() { proto.RegisterFile("echo_service.proto", fileDescriptor_27f7defb08b1da73) }
 
 var fileDescriptor_27f7defb08b1da73 = []byte{
-	// 133 bytes of a gzipped FileDescriptorProto
+	// 145 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4a, 0x4d, 0xce, 0xc8,
 	0x8f, 0x2f, 0x4e, 0x2d, 0x2a, 0xcb, 0x4c, 0x4e, 0xd5, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x57, 0x52,
 	0xe7, 0xe2, 0x76, 0x4d, 0xce, 0xc8, 0x0f, 0x4a, 0x2d, 0x2c, 0x4d, 0x2d, 0x2e, 0x11, 0x92, 0xe0,
 	0x62, 0xcf, 0x4d, 0x2d, 0x2e, 0x4e, 0x4c, 0x4f, 0x95, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0c, 0x82,
 	0x71, 0x95, 0x34, 0xb8, 0x78, 0x20, 0x0a, 0x8b, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0x71, 0xab, 0x34,
-	0xb2, 0x86, 0x18, 0x19, 0x0c, 0xb1, 0x47, 0x48, 0x87, 0x8b, 0x33, 0x38, 0xb1, 0xd2, 0xb3, 0xc4,
+	0xca, 0x84, 0x18, 0x19, 0x0c, 0xb1, 0x47, 0x48, 0x87, 0x8b, 0x33, 0x38, 0xb1, 0xd2, 0xb3, 0xc4,
 	0x29, 0x31, 0x39, 0x5b, 0x88, 0x47, 0x0f, 0xc9, 0x36, 0x29, 0x5e, 0x3d, 0x64, 0x23, 0x35, 0x18,
-	0x0d, 0x18, 0x93, 0xd8, 0xc0, 0xce, 0x32, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x54, 0x6b, 0xa8,
-	0x77, 0xac, 0x00, 0x00, 0x00,
+	0x0d, 0x18, 0x85, 0x74, 0xb8, 0x78, 0xe1, 0xaa, 0xfd, 0xf3, 0x92, 0x53, 0xf1, 0xea, 0x48, 0x62,
+	0x03, 0x7b, 0xc2, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0xb5, 0xc3, 0x57, 0xc3, 0xda, 0x00, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -135,6 +136,7 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type EchoServiceClient interface {
 	SayItBack(ctx context.Context, opts ...grpc.CallOption) (EchoService_SayItBackClient, error)
+	SayItBackOnce(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
 }
 
 type echoServiceClient struct {
@@ -176,9 +178,19 @@ func (x *echoServiceSayItBackClient) Recv() (*EchoResponse, error) {
 	return m, nil
 }
 
+func (c *echoServiceClient) SayItBackOnce(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
+	out := new(EchoResponse)
+	err := c.cc.Invoke(ctx, "/EchoService/SayItBackOnce", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EchoServiceServer is the server API for EchoService service.
 type EchoServiceServer interface {
 	SayItBack(EchoService_SayItBackServer) error
+	SayItBackOnce(context.Context, *EchoRequest) (*EchoResponse, error)
 }
 
 // UnimplementedEchoServiceServer can be embedded to have forward compatible implementations.
@@ -187,6 +199,9 @@ type UnimplementedEchoServiceServer struct {
 
 func (*UnimplementedEchoServiceServer) SayItBack(srv EchoService_SayItBackServer) error {
 	return status.Errorf(codes.Unimplemented, "method SayItBack not implemented")
+}
+func (*UnimplementedEchoServiceServer) SayItBackOnce(ctx context.Context, req *EchoRequest) (*EchoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SayItBackOnce not implemented")
 }
 
 func RegisterEchoServiceServer(s *grpc.Server, srv EchoServiceServer) {
@@ -219,10 +234,33 @@ func (x *echoServiceSayItBackServer) Recv() (*EchoRequest, error) {
 	return m, nil
 }
 
+func _EchoService_SayItBackOnce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EchoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EchoServiceServer).SayItBackOnce(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/EchoService/SayItBackOnce",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EchoServiceServer).SayItBackOnce(ctx, req.(*EchoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _EchoService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "EchoService",
 	HandlerType: (*EchoServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SayItBackOnce",
+			Handler:    _EchoService_SayItBackOnce_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "SayItBack",
